@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import pandas as pd
-import re
 from replacers import SpellingReplacer
 from replacers import RegexpReplacer
 from replacers import RepeatReplacer
-from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
 #LOADING DATA FROM CSV FILE
@@ -33,25 +31,9 @@ def case_folding(df):
         df.at[index, 'text'] = row['text'].lower() #Python2
     return df
 
-
 #CORRECTING SPELLING - done - only works in Python 2 and needs the enchant, aspell and pyenchant
 def spelling_corr(df):
     replacer = SpellingReplacer()
-    for index, row in df.iterrows():
-        df.at[index, 'text'] = replacer.replace(row['text'])
-    return df
-
-#TRANSFORMING CONTRACTIONS - done
-def trans_contractions(df):
-    replacer = RegexpReplacer()
-    for index, row in df.iterrows():
-        df.at[index, 'text'] = replacer.replace(row['text'])
-    return df
-
-
-#REMOVING REPEATING CHARACTERS - want to run it after I remove URLs
-def removing_repeat(df):
-    replacer = RepeatReplacer()
     for index, row in df.iterrows():
         df.at[index, 'text'] = replacer.replace(row['text'])
     return df
@@ -63,6 +45,7 @@ def removing_stopwords(df):
     for w in new_stopwords:
         print(r'\b{0}\b'.format(w))
         df['text'] = df['text'].replace({r'\b{0}\b'.format(w): ''}, regex=True) # remove HTML tags
+    return df
 
 """
 from nltk.stem import PorterStemmer # import Porter stemmer
@@ -73,6 +56,27 @@ lst = LancasterStemmer() # create obj of LancasterStemmer
 lst.stem("I really like eating")
 >>>pst.stem("shopping")
 """
+
+#TRANSFORMING CONTRACTIONS - done
+def trans_contractions(df):
+    replacer = RegexpReplacer()
+    for index, row in df.iterrows():
+        df.at[index, 'text'] = replacer.replace(row['text'])
+    return df
+
+#REMOVING REPEATING CHARACTERS - want to run it after I remove URLs
+def removing_repeat(df):
+    replacer = RepeatReplacer()
+    for index, row in df.iterrows():
+        df.at[index, 'text'] = replacer.replace(row['text'])
+    return df
+
+#REMOVING EXTRA WHITE SPACES
+def removing_extra_white_spaces(df):
+    for index, row in df.iterrows():
+        df.at[index, 'text'] = ' '.join(row['text'].split())
+    return df
+
 #______________________OTHER CODE_______________________
   
 #SPLITTING INTO TWO DATAFRAMES
@@ -104,9 +108,6 @@ def export_csv(df):
 
 #________________________________________________WORKING ON_____________________________________
 
-#REMOVING EXTRA WHITE SPACES - no funciona por ahora
-for index, row in df.iterrows():
-    df.at[index, 'text'] = re.sub(' +',' ',row['text'])
 
 #REMOVING URLs- no funciona por ahora
 for index, row in df.iterrows():
