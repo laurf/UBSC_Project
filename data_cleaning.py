@@ -4,9 +4,9 @@ import pandas as pd
 import re
 import glob
 import json
-from replacers import SpellingReplacer
-from replacers import RegexpReplacer
-from replacers import RepeatReplacer
+#from replacers import SpellingReplacer
+#from replacers import RegexpReplacer
+#from replacers import RepeatReplacer
 from nltk.corpus import stopwords
 
 #LOADING DATA FROM JSON FILES
@@ -30,6 +30,7 @@ def drop_excess(df):
     return df
 
 df = drop_excess(df)
+df.to_csv("tweets_dates.csv", index=False)
 
 #LOADING DATA FROM CSV FILE
 def load_data_csv(path):
@@ -39,7 +40,7 @@ def load_data_csv(path):
     df.head()
     return df
 
-df = load_data_csv("./tweets_parcial_limpios.csv")
+df = load_data_csv("./tweets_limpios.csv")
 
 #REMOVING @-mentions, HTML tags #REPLACING ’´ WITH ' - done
 def cleaning_data(df):
@@ -49,12 +50,16 @@ def cleaning_data(df):
     df['text'] = df['text'].replace({'´': '\''}, regex=True) # replace ´ with '
     return df
 
+df = cleaning_data(df)
+
 #CASE-FOLDING FOR CASE INSENSITIVE MATCHING - done
 def case_folding(df):
     for index, row in df.iterrows():
-        #df.at[index, 'text'] = row['text'].casefold() Python3
-        df.at[index, 'text'] = row['text'].lower() #Python2
+        df.at[index, 'text'] = row['text'].casefold() #Python3
+        #df.at[index, 'text'] = row['text'].lower() #Python2
     return df
+
+df = case_folding(df)
 
 #REMOVING URLs
 def removing_urls(df):
@@ -151,33 +156,31 @@ df['text'] = df['text'].replace({r"""(?:[:=;] # Eyes[oO\-]? # Nose (optional)[D\
 
 #REMOVING HASHTAGS? - será mejor borrar sólo es símbolo? Si lo hacemos como abajo borra el símbolo y la palabra, no seeeeee
 df['text'] = df['text'].replace({r"(?:\#+[\w_]+[\w\'_\-]*[\w_]+)": ''}, regex=True) # remove hash-tags
-  
+
+
+#SENTIMENT____________________________________________________________________
+
+def sent_pattern(df):
+    from pattern.en import sentiment, polarity, subjectivity, positive
+    for index, row in df.iterrows():
+        print(row['text'], sentiment(row['text']))
+        if index >=20:
+            break
+
+sent_pattern(df)
+   
+def sent_textblob(df):
+    from textblob import TextBlob
+    for index, row in df.iterrows():
+        x = TextBlob(row['text'])
+        print(x)
+        print(x.sentiment)
+        if index >=20:
+            break
+    
+sent_textblob(df)    
+
 """
-from pattern.en import sentiment, polarity, subjectivity, positive
-for index, row in df.iterrows():
-    print(row['text'], sentiment(row['text']))
-    if index >=20:
-        break
-    
-def analize_sentiment(data):
-    '''
-    Utility function to classify the polarity of a tweet
-    using textblob.
-    '''
-    analysis = TextBlob(data)
-    if analysis.sentiment.polarity > 0:
-        return 1
-    elif analysis.sentiment.polarity == 0:
-        return 0
-    else:
-        return -1
-    
-from textblob import TextBlob
-for index, row in df.iterrows():
-    print(row['text'], analize_sentiment(row['text']))
-    if index >=20:
-        break
-    
     emoticons
     abreviationsn
     remove numbers
