@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pandas as pd
+import re
 from replacers import SpellingReplacer
 from replacers import RegexpReplacer
 from replacers import RepeatReplacer
@@ -31,6 +32,15 @@ def case_folding(df):
         df.at[index, 'text'] = row['text'].lower() #Python2
     return df
 
+#REMOVING URLs
+def removing_urls(df):
+    for index, row in df.iterrows():
+        df.at[index, 'text'] = re.sub(r'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))', '', row['text'])
+        
+        #df.at[index, 'text'] = ' '.join(row['text'].split())
+        #html http:// https:// punctuations numbers emojis to words
+    return df
+
 #CORRECTING SPELLING - done - only works in Python 2 and needs the enchant, aspell and pyenchant
 def spelling_corr(df):
     replacer = SpellingReplacer()
@@ -44,7 +54,7 @@ def removing_stopwords(df):
     new_stopwords = set(stopwords.words('english')).difference(to_remove)
     for w in new_stopwords:
         print(r'\b{0}\b'.format(w))
-        df['text'] = df['text'].replace({r'\b{0}\b'.format(w): ''}, regex=True) # remove HTML tags
+        df['text'] = df['text'].replace({r'\b{0}\b'.format(w): ''}, regex=True)
     return df
 
 """
@@ -109,9 +119,6 @@ def export_csv(df):
 #________________________________________________WORKING ON_____________________________________
 
 
-#REMOVING URLs- no funciona por ahora
-for index, row in df.iterrows():
-    df.at[index, 'text'] = row['text'].replace({r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+': ''}, regex=True)
 
 #REMOVING EMOTICONS?- no funciona por ahora
 df['text'] = df['text'].replace({r"""(?:[:=;] # Eyes[oO\-]? # Nose (optional)[D\)\]\(\]/\\OpP] # Mouth)""": ''}, regex=True) # remove emoticons NOPE
