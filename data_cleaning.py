@@ -2,20 +2,44 @@
 
 import pandas as pd
 import re
+import glob
+import json
 from replacers import SpellingReplacer
 from replacers import RegexpReplacer
 from replacers import RepeatReplacer
 from nltk.corpus import stopwords
 
+#LOADING DATA FROM JSON FILES
+def load_json(path):
+    files = glob.glob(path)
+    dictlist = []
+    for file in files:
+        json_string = open(file, 'r').read()
+        json_dict = json.loads(json_string)
+        dictlist.append(json_dict)
+    df = pd.DataFrame(dictlist)
+    return df
+
+df = load_json('./Data/tweet/*')
+
+def drop_excess(df):
+    df = df.replace({'\n': ' '}, regex=True) # remove linebreaks in the dataframe
+    df = df.replace({'\t': ' '}, regex=True) # remove tabs in the dataframe
+    df = df.replace({'\r': ' '}, regex=True) # remove carriage return in the dataframe
+    df = df.drop(['nbr_retweet','url', 'nbr_favorite', 'nbr_reply', 'is_reply', 'user_id','is_retweet', 'usernameTweet', 'ID', 'has_media', 'medias'],axis=1)
+    return df
+
+df = drop_excess(df)
+
 #LOADING DATA FROM CSV FILE
-def load_data(path):
+def load_data_csv(path):
     cols = ['datetime','text']
     df = pd.read_csv(path, skiprows = 1, names = cols)
     # above line will be different depending on where you saved your data, and your file name
     df.head()
     return df
 
-df = load_data("./tweets_parcial_limpios.csv")
+df = load_data_csv("./tweets_parcial_limpios.csv")
 
 #REMOVING @-mentions, HTML tags #REPLACING ’´ WITH ' - done
 def cleaning_data(df):
@@ -36,10 +60,12 @@ def case_folding(df):
 def removing_urls(df):
     for index, row in df.iterrows():
         df.at[index, 'text'] = re.sub(r'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))', '', row['text'])
-        
-        #df.at[index, 'text'] = ' '.join(row['text'].split())
-        #html http:// https:// punctuations numbers emojis to words
+        df.at[index, 'text'] = row['text'].replace('http://', '')
+        df.at[index, 'text'] = row['text'].replace('https://', '')
+        df.at[index, 'text'] = row['text'].replace('.html', '')
     return df
+
+        #punctuations numbers emojis to words
 
 #CORRECTING SPELLING - done - only works in Python 2 and needs the enchant, aspell and pyenchant
 def spelling_corr(df):
