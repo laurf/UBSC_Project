@@ -42,7 +42,7 @@ def load_data_csv(path):
 
 df = load_data_csv("./tweets_limpios.csv")
 
-#REMOVING @-mentions, HTML tags #REPLACING ’´ WITH ' - done
+#REMOVING @-mentions, HTML tags #REPLACING ’´ WITH '
 def cleaning_data(df):
     df['text'] = df['text'].replace({r'<[^>]+>': ''}, regex=True) # remove HTML tags
     df['text'] = df['text'].replace({r'(?:@[\w_]+)': ''}, regex=True) # remove @mentions
@@ -52,7 +52,7 @@ def cleaning_data(df):
 
 df = cleaning_data(df)
 
-#CASE-FOLDING FOR CASE INSENSITIVE MATCHING - done
+#CASE-FOLDING FOR CASE INSENSITIVE MATCHING
 def case_folding(df):
     for index, row in df.iterrows():
         df.at[index, 'text'] = row['text'].casefold() #Python3
@@ -64,12 +64,13 @@ df = case_folding(df)
 #REMOVING URLs
 def removing_urls(df):
     for index, row in df.iterrows():
-        df.at[index, 'text'] = re.sub(r'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))', '', row['text'])
-        df.at[index, 'text'] = row['text'].replace('http://', '')
-        df.at[index, 'text'] = row['text'].replace('https://', '')
-        df.at[index, 'text'] = row['text'].replace('.html', '')
+        s = re.sub(r'https?:// ?[^ ]+', '', row['text'])
+        s = re.sub(r'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))', '', s)
+        s = re.sub(r'([\w_]/[\w_]+)','', s)
+        df.at[index, 'text'] = re.sub(r'([a-z0-9.\-]+.html+)','', s)
     return df
 
+df = removing_urls(df)
         #punctuations numbers emojis to words
 
 #CORRECTING SPELLING - done - only works in Python 2 and needs the enchant, aspell and pyenchant
@@ -78,6 +79,14 @@ def spelling_corr(df):
     for index, row in df.iterrows():
         df.at[index, 'text'] = replacer.replace(row['text'])
     return df
+
+#STEMMING
+>>> from nltk.stem import PorterStemmer
+>>> stemmer = PorterStemmer()
+>>> stemmer.stem('cooking')
+'cook'
+>>> stemmer.stem('cookery')
+'cookeri'
 
 #REMOVING STOPWORDS
 def removing_stopwords(df):
@@ -143,7 +152,7 @@ def tweets_by_dates(df):
 
 # Export to csv
 def export_csv(df):
-    df.to_csv("tweetslimpios.csv", index=False)
+    df.to_csv("tweets_limpios_hastacasefolding.csv", index=False)
 
 #export_csv(df)
 
