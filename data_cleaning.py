@@ -40,7 +40,7 @@ def load_data_csv(path):
     df.head()
     return df
 
-df = load_data_csv("./tweets_limpios.csv")
+df = load_data_csv("./tweets_limpios_hastacasefolding.csv")
 
 #REMOVING @-mentions, HTML tags #REPLACING ’´ WITH '
 def cleaning_data(df):
@@ -67,26 +67,41 @@ def removing_urls(df):
         s = re.sub(r'https?:// ?[^ ]+', '', row['text'])
         s = re.sub(r'(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'".,<>?«»“”‘’]))', '', s)
         s = re.sub(r'([\w_]/[\w_]+)','', s)
+        s = re.sub(r'([a-z0-9.\-]+/+)','', s)
+        s = re.sub(r'([a-z0-9.\-]+.com+)','', s)
         df.at[index, 'text'] = re.sub(r'([a-z0-9.\-]+.html+)','', s)
     return df
 
 df = removing_urls(df)
-        #punctuations numbers emojis to words
 
-#CORRECTING SPELLING - done - only works in Python 2 and needs the enchant, aspell and pyenchant
+#CORRECTING SPELLING - we will do it with R
 def spelling_corr(df):
     replacer = SpellingReplacer()
     for index, row in df.iterrows():
         df.at[index, 'text'] = replacer.replace(row['text'])
     return df
 
+        #punctuations numbers emojis to words
 #STEMMING
->>> from nltk.stem import PorterStemmer
->>> stemmer = PorterStemmer()
->>> stemmer.stem('cooking')
-'cook'
->>> stemmer.stem('cookery')
-'cookeri'
+def stemming(df):
+    from nltk.stem import PorterStemmer
+    from nltk.tokenize import RegexpTokenizer
+    stemmer = PorterStemmer()
+    for index, row in df.iterrows():
+        tokenizer = RegexpTokenizer('\s+', gaps=True)
+        words = tokenizer.tokenize(row['text'])
+        for w in words:
+            print('word: {}'.format(w))
+            ste = stemmer.stem(w)
+            print('stem: {}'.format(ste))
+            if ste != w:
+                print(row['text'])
+                df.at[index, 'text'] = re.sub(w,ste, row['text'])
+                print(row['text'])
+        if index > 10:
+            break
+    return df
+
 
 #REMOVING STOPWORDS
 def removing_stopwords(df):
