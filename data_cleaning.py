@@ -50,24 +50,29 @@ def trans_contractions(df):
 
 
 #REMOVING REPEATING CHARACTERS - want to run it after I remove URLs
-def removing_repeat():
+def removing_repeat(df):
     replacer = RepeatReplacer()
     for index, row in df.iterrows():
         df.at[index, 'text'] = replacer.replace(row['text'])
     return df
 
 #REMOVING STOPWORDS
-def removing_stopwords():
-    
-stop_words = set(stopwords.words('english'))
-word_tokens = word_tokenize(df.text[0])
-filtered_sentence = []
-for w in word_tokens:
-    if w not in stop_words:
-        filtered_sentence.append(w)
-print(filtered_sentence)
+def removing_stopwords(df):
+    to_remove = ['no', 'nor', 'not', 'don', "don't", 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't"]
+    new_stopwords = set(stopwords.words('english')).difference(to_remove)
+    for w in new_stopwords:
+        print(r'\b{0}\b'.format(w))
+        df['text'] = df['text'].replace({r'\b{0}\b'.format(w): ''}, regex=True) # remove HTML tags
 
-    
+"""
+from nltk.stem import PorterStemmer # import Porter stemmer
+from nltk.stem.lancaster import LancasterStemmer
+from nltk.stem.Snowball import SnowballStemmer
+pst = PorterStemmer()   # create obj of the PorterStemmer
+lst = LancasterStemmer() # create obj of LancasterStemmer
+lst.stem("I really like eating")
+>>>pst.stem("shopping")
+"""
 #______________________OTHER CODE_______________________
   
 #SPLITTING INTO TWO DATAFRAMES
@@ -113,7 +118,7 @@ df['text'] = df['text'].replace({r"""(?:[:=;] # Eyes[oO\-]? # Nose (optional)[D\
 #REMOVING HASHTAGS? - será mejor borrar sólo es símbolo? Si lo hacemos como abajo borra el símbolo y la palabra, no seeeeee
 df['text'] = df['text'].replace({r"(?:\#+[\w_]+[\w\'_\-]*[\w_]+)": ''}, regex=True) # remove hash-tags
   
-
+"""
 from pattern.en import sentiment, polarity, subjectivity, positive
 for index, row in df.iterrows():
     print(row['text'], sentiment(row['text']))
@@ -138,3 +143,8 @@ for index, row in df.iterrows():
     print(row['text'], analize_sentiment(row['text']))
     if index >=20:
         break
+    
+    emoticons
+    abreviationsn
+    remove numbers
+"""
