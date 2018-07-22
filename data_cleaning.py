@@ -81,7 +81,6 @@ def spelling_corr(df):
         df.at[index, 'text'] = replacer.replace(row['text'])
     return df
 
-        #punctuations numbers emojis to words
 #STEMMING
 def stemming(df):
     from nltk.stem import PorterStemmer
@@ -102,6 +101,9 @@ def stemming(df):
             break
     return df
 
+#REMOVING PUNCTUATIONS, NUMBERS, HASHES - in R
+
+#TRANSFORMING EMOJIS AND EMOTICONS INTO WORDS - in R
 
 #REMOVING STOPWORDS
 def removing_stopwords(df):
@@ -112,17 +114,9 @@ def removing_stopwords(df):
         df['text'] = df['text'].replace({r'\b{0}\b'.format(w): ''}, regex=True)
     return df
 
-"""
-from nltk.stem import PorterStemmer # import Porter stemmer
-from nltk.stem.lancaster import LancasterStemmer
-from nltk.stem.Snowball import SnowballStemmer
-pst = PorterStemmer()   # create obj of the PorterStemmer
-lst = LancasterStemmer() # create obj of LancasterStemmer
-lst.stem("I really like eating")
->>>pst.stem("shopping")
-"""
+removing_stopwords(df)
 
-#TRANSFORMING CONTRACTIONS - done
+#TRANSFORMING CONTRACTIONS - in R
 def trans_contractions(df):
     replacer = RegexpReplacer()
     for index, row in df.iterrows():
